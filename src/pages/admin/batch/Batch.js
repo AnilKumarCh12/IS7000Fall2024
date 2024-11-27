@@ -112,6 +112,10 @@ function Batch() {
                 currentPage === totalPages
                   ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
                   : 'bg-blue-500 text-white hover:bg-blue-600'
+
+
+
+
               }`}
             >
               Next
