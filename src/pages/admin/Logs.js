@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import axios from "axios";
+import {SERVERIP} from "../../header/MarketConstants";
 
 const Logs = () => {
     const [loading, setLoading] = useState(true);
@@ -8,7 +9,9 @@ const Logs = () => {
         const fetchData = async () => {
             setLoading(true);
             try {
-                const {data: response} = await axios.get('http://3.218.8.102/api/insyte-logs?page=0&size=20&sort=id,asc');
+                const {data: response} = await axios.get('http://' +
+                    SERVERIP +
+                    '/api/insyte-logs?page=0&size=20&sort=id,asc');
                 setData(response);
             } catch (error) {
                 console.error(error.message);
