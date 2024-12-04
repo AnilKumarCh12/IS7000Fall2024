@@ -14,6 +14,9 @@ import SignUp from './pages/user/signup';
 import Batch from './pages/admin/batch/Batch';
 import Logs from "./pages/admin/Logs";
 import {setAuthToken} from "./pages/user/AuthToken";
+import ViewJob from "./pages/admin/batch/ViewJob";
+import CreateJob from './pages/admin/batch/CreateJob';
+
 
 function App() {
     //check jwt token
@@ -35,7 +38,9 @@ function App() {
         <Route path='/contact' element={<Contact />} />
         <Route path='/signup' element={<SignUp />} />
         <Route path="/batch" element={<Batch />} />
-          <Route path="/log" element={<Logs />} />
+        <Route path="/log" element={<Logs />} />
+        <Route path="/batch/:id" element={<ViewJob />} />
+        <Route path="/create-job" element={<CreateJob />} />
 
       </Routes>
       <Footer />

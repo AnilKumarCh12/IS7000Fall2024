@@ -1,131 +1,138 @@
-import React, { useState } from 'react';
-import { FaEdit, FaTrash } from 'react-icons/fa';
+// BatchesList.js
 
-function Batch() {
-  const [jobs, setJobs] = useState([
-    { id: 1, title: 'Update Website Banner', description: 'Change homepage banner for promotions' },
-    { id: 2, title: 'Fix Broken Links', description: 'Check and fix broken links on the website' },
-    { id: 3, title: 'Content Moderation', description: 'Review and approve user-generated content' },
-    { id: 4, title: 'Database Backup', description: 'Perform a full database backup' },
-    { id: 5, title: 'Email Campaign', description: 'Set up monthly newsletter' }
-  ].map(job => ({ ...job, status: 'Pending' }))); // Automatically set default status
+import React, { useState, useEffect } from "react";
+import { FaEdit, FaTrash, FaEye } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { setAuthToken } from "./AuthToken"; // Import the setAuthToken function
 
-  const updateStatus = (id, newStatus) => {
-    setJobs(jobs.map(job => job.id === id ? { ...job, status: newStatus } : job));
+const BatchesList = () => {
+  const [batches, setBatches] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const navigate = useNavigate();
+
+  // Fetch the token (from localStorage using the 'id_token' variable name)
+  const token = localStorage.getItem("id_token");
+
+  // Set the token using the setAuthToken function
+  useEffect(() => {
+    if (token) {
+      setAuthToken(token); // Set the token for all subsequent API requests
+    }
+  }, [token]);
+
+  // Function to fetch data from the API
+  const fetchBatches = async () => {
+    try {
+      const response = await axios.get(
+        "http://3.218.8.102/api/batches?page=0&size=20&sort=id,asc"
+      );
+      console.log("API Response:", response.data); // Log the response for debugging
+      setBatches(response.data); // Set the data directly if it is an array
+      setLoading(false);
+    } catch (err) {
+      console.error("Error fetching batches:", err.response || err.message);
+      setError("Failed to fetch data. Please try again.");
+      setLoading(false);
+    }
   };
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const jobsPerPage = 5;
+  useEffect(() => {
+    fetchBatches();
+  }, []);
 
-  // Calculate the total number of pages
-  const totalPages = Math.ceil(jobs.length / jobsPerPage);
-
-  // Get current jobs to display
-  const indexOfLastJob = currentPage * jobsPerPage;
-  const indexOfFirstJob = indexOfLastJob - jobsPerPage;
-  const currentJobs = jobs.slice(indexOfFirstJob, indexOfLastJob);
-
-  // Function to change page
-  const handlePageChange = (pageNumber) => {
-    setCurrentPage(pageNumber);
-  };
-
-  const handlePrevious = () => {
-    if (currentPage > 1) setCurrentPage(currentPage - 1);
-  };
-
-  const handleNext = () => {
-    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+  const handleRefresh = () => {
+    fetchBatches();
   };
 
   return (
-    <div className='text-white flex flex-col items-center w-full h-screen p-8 bg-pink-400'>
-      {/* Align the heading and list together */}
-      <div className='w-full max-w-3xl'>
-        <h2 className='text-3xl font-semibold mb-6 text-center'>Manage Your Tasks</h2>
-        <table className='table-auto bg-white text-black w-3/4 shadow-lg rounded-lg'>
-        <thead>
-          <tr className='bg-gray-800 text-white'>
-            <th className='py-2 px-4'>#</th>
-            <th className='py-2 px-4'>Task</th>
-            <th className='py-2 px-4'>Status</th>
-            <th className='py-2 px-4'>Update Status</th>
-          </tr>
-        </thead>
-        <tbody> 
-        {jobs.map((job, index) => (
-            <tr key={job.id} className='border-b'>
-              {/* Index */}
-              <td className='py-3 px-4 text-center'>{index + 1}</td>
-
-              {/* Task Details */}
-              <td className='py-3 px-4'>
-                <span className='font-semibold'>{job.title}</span>: {job.description}
-              </td>
-
-              {/* Status */}
-              <td className={`py-3 px-4 text-center ${job.status === 'Completed' ? 'text-green-600' : job.status === 'In Progress' ? 'text-yellow-600' : 'text-red-600'}`}>
-                {job.status}
-              </td>
-
-              {/* Update Status Buttons */}
-              <td className='py-3 px-4 flex justify-center space-x-4'>
-                <button
-                  onClick={() => updateStatus(job.id, 'Completed')}
-                  className='bg-green-600 hover:bg-green-500 text-white py-1 px-3 rounded'
-                >
-                  Complete
-                </button>
-                <button
-                  onClick={() => updateStatus(job.id, 'In Progress')}
-                  className='bg-yellow-600 hover:bg-yellow-500 text-white py-1 px-3 rounded'
-                >
-                  In Progress
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-        </table>
-        <div className='flex space-x-4 mt-8'>
-        {Array.from({ length: totalPages }, (_, index) => (
-          <><><button
-            key={index}
-            onClick={() => handlePageChange(index + 1)}
-            className={`py-2 px-4 rounded ${currentPage === index + 1 ? 'bg-blue-600 text-white' : 'bg-gray-300 text-black'}`}
-          >
-            {index + 1}
-          </button><button
-            onClick={handlePrevious}
-            disabled={currentPage === 1}
-            className={`py-2 px-5 rounded-md transition-colors duration-300 ${
-              currentPage === 1
-                ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
-                : 'bg-blue-500 text-white hover:bg-blue-600'
-            }`}
-          >
-              Previous
-            </button></><button
-              onClick={handleNext}
-              disabled={currentPage === totalPages}
-              className={`py-2 px-5 rounded-md transition-colors duration-300 ${
-                currentPage === totalPages
-                  ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
-                  : 'bg-blue-500 text-white hover:bg-blue-600'
-
-
-
-
-              }`}
-            >
-              Next
-            </button></>
-        ))}
-
+    <div className="bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 min-h-screen p-6 text-white">
+      <h1 className="text-3xl font-bold mb-6">Batches</h1>
+      <div className="flex justify-end mb-4">
+        <button
+          onClick={handleRefresh}
+          className="flex items-center bg-gray-700 hover:bg-gray-800 text-white px-4 py-2 rounded mr-2"
+        >
+          🔄 Refresh
+        </button>
+        <button
+          onClick={() => navigate("/create-job")}
+          className="bg-yellow-400 hover:bg-yellow-500 text-black px-4 py-2 rounded"
+        >
+          + Create Job
+        </button>
       </div>
+      <div className="bg-blue-800 p-6 rounded-lg shadow-lg">
+        {loading && <p>Loading...</p>}
+        {error && <p className="text-red-500">{error}</p>}
+        {!loading && !error && (
+          <table className="table-auto w-full text-left">
+            <thead className="bg-blue-700 text-white">
+              <tr>
+                <th className="px-4 py-2">ID</th>
+                <th className="px-4 py-2">Name</th>
+                <th className="px-4 py-2">Job</th>
+                <th className="px-4 py-2">Run Date</th>
+                <th className="px-4 py-2">Batch Status</th>
+                <th className="px-4 py-2">User</th>
+                <th className="px-4 py-2">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {batches.length > 0 ? (
+                batches.map((batch, index) => (
+                  <tr
+                    key={batch.id}
+                    className={
+                      index % 2 === 0 ? "bg-blue-600" : "bg-blue-500"
+                    }
+                  >
+                    <td className="px-4 py-2">{batch.id}</td>
+                    <td className="px-4 py-2">{batch.name}</td>
+                    <td className="px-4 py-2">{batch.job}</td>
+                    <td className="px-4 py-2">{batch.rundate}</td>
+                    <td className="px-4 py-2">{batch.status}</td>
+                    <td className="px-4 py-2">{batch.user}</td>
+                    <td className="px-4 py-2 flex space-x-2">
+                      <button
+                        onClick={() => navigate(`/batch/${batch.id}`)}
+                        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+                      >
+                        <FaEye className="inline mr-2" /> View
+                      </button>
+                      <button
+                        onClick={() => console.log(`Edit batch: ${batch.id}`)}
+                        className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded flex items-center"
+                      >
+                        <FaEdit className="mr-2" /> Edit
+                      </button>
+                      <button
+                        onClick={() => console.log(`Delete batch: ${batch.id}`)}
+                        className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded flex items-center"
+                      >
+                        <FaTrash className="mr-2" /> Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan="7"
+                    className="text-center py-4 text-gray-300 italic"
+                  >
+                    No batches available.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );
-}
+};
 
-export default Batch;
+export default BatchesList;
