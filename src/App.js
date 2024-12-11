@@ -16,6 +16,8 @@ import Logs from "./pages/admin/Logs";
 import {setAuthToken} from "./pages/user/AuthToken";
 import ViewJob from "./pages/admin/batch/ViewJob";
 import CreateJob from './pages/admin/batch/CreateJob';
+import DeleteJob from './pages/admin/batch/DeleteJob';
+import UpdateJob from './pages/admin/batch/UpdateJob';
 
 
 function App() {
@@ -41,6 +43,9 @@ function App() {
         <Route path="/log" element={<Logs />} />
         <Route path="/batch/:id" element={<ViewJob />} />
         <Route path="/create-job" element={<CreateJob />} />
+        <Route path="/delete-job/:id" element={<DeleteJob />} />
+        <Route path="/update-job/:id" element={<UpdateJob />} />
+        
 
       </Routes>
       <Footer />

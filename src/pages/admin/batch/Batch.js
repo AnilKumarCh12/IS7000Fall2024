@@ -2,17 +2,21 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom'; // For navigation
 import { FaEdit, FaTrash } from 'react-icons/fa'; // For icons
+import { apiUrl } from './Api';
+import { setAuthToken } from './AuthToken';
 
 const BatchData = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentPage, setCurrentPage] = useState(0); // Current page state
+  const [totalPages, setTotalPages] = useState(0); // Total pages state
   const navigate = useNavigate(); // Navigation hook
+  const pageSize = 10; // Number of items per page
 
-  const apiUrl = 'http://3.218.8.102/api/batches?page=0&size=20&sort=id,asc';
-  const bearerToken =
-    'eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ1c2VyIiwiZXhwIjoxNzMzMzY2NzIyLCJhdXRoIjoiUk9MRV9VU0VSIiwiaWF0IjoxNzMzMjgwMzIyfQ._onoIo5f-xWu6NLDjiO-6M429pLXT8N2v_auWTM1r_lkcJNJvqL_5FlIVUN7MDOO7fQl0-QaqjjPqQ_0zuQPtw';
-
+  const apiUrl = 'http://3.218.8.102/api/batches?page=${currentPage}&size=${pageSize}20&sort=id,asc';
+  const bearerToken = setAuthToken;
+    
   // Function to fetch data
   const fetchData = async () => {
     try {
@@ -21,7 +25,8 @@ const BatchData = () => {
           Authorization: `Bearer ${bearerToken}`,
         },
       });
-      setData(response.data);
+      setData(response.data.content);
+      setTotalPages(response.data.totalPages);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -31,14 +36,19 @@ const BatchData = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [currentPage]);
 
   // Function to handle refresh
   const handleRefresh = () => {
     setLoading(true);
     fetchData();
   };
-
+  const handlePageChange = (newPage) => {
+    if (newPage >= 0 && newPage < totalPages) {
+      setCurrentPage(newPage);
+    }
+  };
+  
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
 
@@ -97,10 +107,16 @@ const BatchData = () => {
                   >
                     View
                   </button>
-                  <button className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded flex items-center">
-                    <FaEdit className="mr-2" /> Edit
+                  <button
+                    onClick={() => navigate(`/update-job/${batch.id}`)} // Navigate to update page
+                    className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded flex items-center"
+                  >
+                    <FaTrash className="mr-2" /> Edit
                   </button>
-                  <button className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded flex items-center">
+                  <button
+                    onClick={() => navigate(`/delete-job/${batch.id}`)} // Navigate to delete page
+                    className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded flex items-center"
+                  >
                     <FaTrash className="mr-2" /> Delete
                   </button>
                 </td>
@@ -108,6 +124,23 @@ const BatchData = () => {
             ))}
           </tbody>
         </table>
+      </div>
+      <div className="flex justify-center items-center mt-4 space-x-4">
+        <button
+          onClick={() => handlePageChange(currentPage - 1)}
+          disabled={currentPage === 0}
+          className="bg-gray-700 hover:bg-gray-800 text-white px-4 py-2 rounded disabled:opacity-50"
+        >
+          Previous
+        </button>
+        <span className="text-white">Page {currentPage + 1} of {totalPages}</span>
+        <button
+          onClick={() => handlePageChange(currentPage + 1)}
+          disabled={currentPage === totalPages - 1}
+          className="bg-gray-700 hover:bg-gray-800 text-white px-4 py-2 rounded disabled:opacity-50"
+        >
+          Next
+        </button>
       </div>
     </div>
   );
